@@ -1,6 +1,6 @@
 # Import Splinter, BeautifulSoup, and Pandas
 from splinter import Browser
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup as soup
 import pandas as pd
 import datetime as dt
 from webdriver_manager.chrome import ChromeDriverManager
@@ -21,7 +21,8 @@ def scrape_all():
         "news_paragraph": news_paragraph,
         "featured_image": featured_image(browser),
         "facts": mars_facts(),
-        "last_modified": dt.datetime.now()
+        "last_modified": dt.datetime.now(),
+        "hemispheres": mars_hemispheres(browser)
     }
 
     # Stop webdriver and return data
@@ -79,7 +80,7 @@ def featured_image(browser):
         return None
 
     # Use the base url to create an absolute url
-    img_url = f'https://spaceimages-mars.com/image/featured/mars3.jpg'
+    img_url = f'https://spaceimages-mars.com/{img_url_rel}'
 
     return img_url
 
@@ -98,6 +99,29 @@ def mars_facts():
 
     # Convert dataframe into HTML format, add bootstrap
     return df.to_html(classes="table table-striped")
+
+def mars_hemispheres(browser):
+    url = 'https://marshemispheres.com/'
+    hemisphere_image_urls = []
+    # Add try/except for error handling
+    
+    try:
+        for image in range (0, 4):
+            browser.visit(url)
+            hemisphere_image = browser.find_by_tag('h3')[image]
+            hemisphere_image.click()
+            html = browser.html
+            hem_soup = soup(html, 'html.parser')
+            hemisphere_image = hem_soup.find('img', class_='wide-image').get('src')
+            image_url = 'https://marshemispheres.com/' + hemisphere_image
+            hemisphere_img_title = hem_soup.find('h2', class_='title').get_text()
+            results_dict = {'img_url': image_url, 'title': hemisphere_img_title}
+    
+            hemisphere_image_urls.append(results_dict)
+    except AttributeError:
+        return None
+
+    return hemisphere_image_urls
 
 if __name__ == "__main__":
 
